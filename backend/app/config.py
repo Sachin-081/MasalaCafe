@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
+        "https://masala-cafe-j31i7bm27-cipher-crew6.vercel.app",
     ]
 
     model_config = SettingsConfigDict(
