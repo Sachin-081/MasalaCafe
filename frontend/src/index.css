@@ -512,3 +512,36 @@ img { display: block; max-width: 100%; }
   .kitchen-header__actions { flex-wrap: wrap; }
   .menu-admin-search { width: 100%; }
 }
+
+.account-deletion-page .page-heading { align-items: flex-start; }
+.account-deletion-panel, .account-deletion-history { margin-bottom: 20px; }
+.account-deletion-panel .panel__header h2 { display: flex; align-items: center; gap: 9px; }
+.account-deletion-panel .panel__body { display: grid; justify-items: start; gap: 17px; }
+.account-deletion-notice, .account-deletion-admin-notice { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border: 1px solid #e8dfc7; border-radius: 13px; color: #745d2a; background: #fff9e9; }
+.account-deletion-notice svg, .account-deletion-admin-notice svg { flex: 0 0 auto; margin-top: 2px; }
+.account-deletion-notice p, .account-deletion-admin-notice p { margin: 0; font-size: 12px; line-height: 1.65; }
+.account-deletion-pending-note { margin: 0; color: #68746c; font-size: 13px; }
+.account-deletion-request-list, .account-deletion-admin-list { display: grid; gap: 14px; padding: 18px; }
+.account-deletion-request { display: grid; gap: 11px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+.account-deletion-request__heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.account-deletion-request__heading time, .account-deletion-admin-card__header time { color: var(--muted); font-size: 11px; }
+.account-deletion-status { display: inline-flex; padding: 6px 10px; border-radius: 999px; font-size: 11px; font-weight: 700; }
+.account-deletion-status--pending { color: #92651c; background: #fff4d9; }
+.account-deletion-status--approved { color: #347347; background: #e9f5e8; }
+.account-deletion-status--rejected { color: #a34932; background: #fbece7; }
+.account-deletion-request__notice, .account-deletion-request__note { margin: 0; color: #647168; font-size: 12px; line-height: 1.6; }
+.account-deletion-request__notice { color: #347347; }
+.account-deletion-admin-notice { margin-bottom: 18px; }
+.account-deletion-admin-card { padding: 20px; }
+.account-deletion-admin-card__header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 14px; margin-bottom: 20px; }
+.account-deletion-admin-card__header .eyebrow { margin: 0 0 7px; }
+.account-deletion-admin-card__header h2 { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 22px; }
+.account-deletion-admin-card__id { margin: 7px 0 0; color: var(--muted); font-size: 12px; }
+.account-deletion-admin-card .form-field textarea { min-height: 74px; }
+.account-deletion-admin-card .form-actions { margin-top: 14px; }
+
+@media (max-width: 600px) {
+  .account-deletion-admin-card { padding: 15px; }
+  .account-deletion-admin-card .form-actions { align-items: stretch; flex-direction: column; }
+  .account-deletion-admin-card .form-actions .button { width: 100%; }
+}

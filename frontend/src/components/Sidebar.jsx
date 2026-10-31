@@ -1,4 +1,4 @@
-import { LayoutDashboard, ClipboardList, CookingPot, ChartNoAxesCombined, Boxes, LogOut, UtensilsCrossed, UserRoundPlus } from "lucide-react";
+import { LayoutDashboard, ClipboardList, CookingPot, ChartNoAxesCombined, Boxes, LogOut, UtensilsCrossed, UserRoundPlus, UserRoundX } from "lucide-react";
 import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -9,6 +9,7 @@ const navigation = [
   { to: "/admin/inventory", label: "Inventory", icon: Boxes },
   { to: "/admin/analytics", label: "Analytics", icon: ChartNoAxesCombined },
   { to: "/admin/kitchen-users", label: "Kitchen accounts", icon: UserRoundPlus },
+  { to: "/admin/account-deletion-requests", label: "Deletion requests", icon: UserRoundX },
   { to: "/kitchen", label: "Kitchen display", icon: CookingPot },
 ];
 

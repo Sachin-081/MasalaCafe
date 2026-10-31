@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { ArrowUpRight, LogOut, Menu as MenuIcon, ShoppingBag, UtensilsCrossed, X } from "lucide-react";
+import { ArrowUpRight, LogOut, Menu as MenuIcon, ShoppingBag, UserRound, UtensilsCrossed, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 
@@ -24,6 +24,9 @@ export default function Navbar() {
         </NavLink>
         <NavLink to="/my-orders" className={({ isActive }) => `student-nav__link${isActive ? " active" : ""}`} onClick={closeMenu}>
           <ArrowUpRight size={16} /> My orders
+        </NavLink>
+        <NavLink to="/account" className={({ isActive }) => `student-nav__link${isActive ? " active" : ""}`} onClick={closeMenu}>
+          <UserRound size={16} /> Account
         </NavLink>
       </nav>
 

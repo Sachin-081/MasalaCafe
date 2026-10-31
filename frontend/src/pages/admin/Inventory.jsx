@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertTriangle, ArrowDown, ArrowUp, Boxes, Clock3, PackageCheck, Save } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 import api from "../../services/api";
@@ -23,9 +23,10 @@ export default function Inventory() {
   const [savingId, setSavingId] = useState(null);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const refreshInFlight = useRef(false);
 
-  async function loadData() {
-    setLoading(true);
+  async function loadData({ preserveDrafts = false, background = false } = {}) {
+    if (!background) setLoading(true);
     try {
       const [items, history] = await Promise.all([
         api.get("/api/inventory/"),
@@ -33,20 +34,54 @@ export default function Inventory() {
       ]);
       setInventory(items);
       setMovements(history);
-      setDrafts(Object.fromEntries(items.map((item) => [item.menu_item_id, createDraft(item)])));
+      setDrafts((current) => Object.fromEntries(items.map((item) => {
+        const freshDraft = createDraft(item);
+        const existingDraft = current[item.menu_item_id];
+        const hasUnsavedChanges = existingDraft && (
+          existingDraft.stock_quantity !== freshDraft.stock_quantity
+          || existingDraft.low_stock_threshold !== freshDraft.low_stock_threshold
+          || existingDraft.reason.trim() !== ""
+        );
+        return [
+          item.menu_item_id,
+          preserveDrafts && hasUnsavedChanges ? existingDraft : freshDraft,
+        ];
+      })));
       setError("");
       return true;
     } catch (loadError) {
       setError(loadError.message || "Unable to load inventory.");
       return false;
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
   }
 
   useEffect(() => {
-    const timer = window.setTimeout(() => loadData(), 0);
-    return () => window.clearTimeout(timer);
+    let active = true;
+    const refresh = async (background = false) => {
+      if (refreshInFlight.current) return;
+      refreshInFlight.current = true;
+      try {
+        if (active) await loadData({ preserveDrafts: background, background });
+      } finally {
+        refreshInFlight.current = false;
+      }
+    };
+    const initialLoad = window.setTimeout(() => refresh(), 0);
+    const refreshInterval = window.setInterval(() => {
+      if (!document.hidden) refresh(true);
+    }, 15000);
+    const handleFocus = () => {
+      if (!document.hidden) refresh(true);
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => {
+      active = false;
+      window.clearTimeout(initialLoad);
+      window.clearInterval(refreshInterval);
+      window.removeEventListener("focus", handleFocus);
+    };
   }, []);
 
   const lowStockItems = useMemo(
@@ -100,7 +135,7 @@ export default function Inventory() {
   return (
     <Sidebar
       title="Inventory"
-      subtitle="Track on-hand menu stock, availability, and every recorded adjustment."
+      subtitle="Track on-hand menu stock and adjustments. Stock refreshes automatically every 15 seconds."
     >
       {error && <p className="alert" role="alert">{error}</p>}
       {message && <p className="alert alert--success" role="status">{message}</p>}

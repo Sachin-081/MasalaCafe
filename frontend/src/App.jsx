@@ -18,6 +18,8 @@ import MenuManagement from "./pages/admin/MenuManagement";
 import Inventory from "./pages/admin/Inventory";
 import Orders from "./pages/admin/Orders";
 import KitchenUsers from "./pages/admin/KitchenUsers";
+import StudentAccount from "./pages/student/Account";
+import AccountDeletionRequests from "./pages/admin/AccountDeletionRequests";
 
 const Analytics = lazy(() => import("./pages/admin/Analytics"));
 
@@ -71,6 +73,12 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
 
+      <Route path="/account" element={
+        <ProtectedRoute allowedRoles={["student"]}>
+          <StudentAccount />
+        </ProtectedRoute>
+      } />
+
       <Route path="/kitchen" element={
         <ProtectedRoute allowedRoles={["admin", "kitchen"]}>
           <KitchenDashboard />
@@ -112,6 +120,12 @@ function AppRoutes() {
       <Route path="/admin/kitchen-users" element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <KitchenUsers />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/account-deletion-requests" element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <AccountDeletionRequests />
         </ProtectedRoute>
       } />
 
