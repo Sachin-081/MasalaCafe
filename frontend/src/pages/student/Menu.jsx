@@ -1,8 +1,10 @@
-
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import api from "../../services/api";
+import { ArrowRight, Clock3, Search, Sparkles } from "lucide-react";
+import Navbar from "../../components/Navbar";
+import MenuCard from "../../components/MenuCard";
 import { useCart } from "../../context/CartContext";
+import api from "../../services/api";
 
 export default function Menu() {
   const [categories, setCategories] = useState([]);
@@ -11,9 +13,7 @@ export default function Menu() {
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-
-  const { addToCart, increaseQuantity, decreaseQuantity, cartItems, cartCount } =
-    useCart();
+  const { addToCart, increaseQuantity, decreaseQuantity, cartItems, cartCount } = useCart();
 
   useEffect(() => {
     async function loadMenu() {
@@ -22,157 +22,95 @@ export default function Menu() {
           api.get("/api/categories/"),
           api.get("/api/menu/"),
         ]);
-
         setCategories(categoryData);
         setMenuItems(menuData.filter((item) => item.is_available));
       } catch (err) {
-        setError(err.message || "Unable to load menu.");
+        setError(err.message || "Unable to load the menu.");
       } finally {
         setLoading(false);
       }
     }
-
     loadMenu();
   }, []);
 
-  const filteredItems = useMemo(() => {
-    return menuItems.filter((item) => {
-      const matchesCategory =
-        activeCategory === "all" ||
-        item.category_id === activeCategory;
-
-      const matchesSearch = item.name
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-
-      return matchesCategory && matchesSearch;
-    });
-  }, [menuItems, activeCategory, searchQuery]);
+  const filteredItems = useMemo(() => menuItems.filter((item) => {
+    const matchesCategory = activeCategory === "all" || item.category_id === activeCategory;
+    const query = searchQuery.trim().toLowerCase();
+    const matchesSearch = !query || `${item.name} ${item.description || ""}`.toLowerCase().includes(query);
+    return matchesCategory && matchesSearch;
+  }), [menuItems, activeCategory, searchQuery]);
 
   return (
-    <main className="menu-page">
-      <header className="menu-header">
-        <p className="menu-eyebrow">MASALACAFE / CAMPUS CANTEEN</p>
+    <>
+      <Navbar />
+      <main className="menu-page">
+        <section className="menu-hero">
+          <div className="menu-hero__content">
+            <span className="eyebrow">MASALACAFE · CAMPUS CANTEEN</span>
+            <h1>A good meal makes a good day.</h1>
+            <p>Freshly prepared campus favorites, just a few taps away. Find your next canteen classic.</p>
+            <div className="menu-hero__action">
+              <Link to="/cart" className="button">View your cart <ArrowRight size={16} /></Link>
+              <span className="menu-hero__note"><Clock3 size={15} /> Made fresh on campus</span>
+            </div>
+          </div>
+        </section>
 
-        <div className="menu-heading-row">
-          <div>
-            <h1>Our Menu</h1>
-            <p className="menu-description">
-              Good food. Simple ordering.
-            </p>
+        <section aria-label="Browse menu">
+          <div className="menu-toolbar">
+            <nav className="category-navigation" aria-label="Menu categories">
+              <button className={activeCategory === "all" ? "active" : ""} onClick={() => setActiveCategory("all")}>Everything</button>
+              {categories.map((category) => (
+                <button key={category.id} className={activeCategory === category.id ? "active" : ""} onClick={() => setActiveCategory(category.id)}>
+                  {category.name}
+                </button>
+              ))}
+            </nav>
+            <label className="search-box menu-toolbar__search">
+              <Search size={17} />
+              <input type="search" placeholder="Find something tasty..." value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} aria-label="Search menu" />
+            </label>
           </div>
 
-          <Link to="/cart" className="cart-link">
-            Cart ({cartCount})
-          </Link>
-        </div>
-      </header>
-
-      <section className="menu-controls">
-        <nav className="category-navigation">
-          <button
-            className={activeCategory === "all" ? "active" : ""}
-            onClick={() => setActiveCategory("all")}
-          >
-            All items
-          </button>
-
-          {categories.map((category) => (
-            <button
-              key={category.id}
-              className={
-                activeCategory === category.id ? "active" : ""
-              }
-              onClick={() => setActiveCategory(category.id)}
-            >
-              {category.name}
-            </button>
-          ))}
-        </nav>
-
-        <input
-          type="search"
-          placeholder="Search the menu..."
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          aria-label="Search menu items"
-        />
-      </section>
-
-      <section className="menu-results">
-        {loading && <p>Loading menu...</p>}
-        {error && <p className="error-message">{error}</p>}
-
-        {!loading && !error && (
-          <>
-            <p>{filteredItems.length} items available in the menu</p>
-
-            <div className="menu-grid">
-              {filteredItems.map((item) => {
-                const cartItem = cartItems.find(
-                  (cartItem) => cartItem.id === item.id
-                );
-
-                const category = categories.find(
-                  (category) => category.id === item.category_id
-                );
-
-                return (
-                  <article className="menu-item" key={item.id}>
-                    {item.image_url ? (
-                      <img
-                        src={item.image_url}
-                        alt={item.name}
-                        className="menu-item-image"
+          {loading && <div className="loading-state"><Clock3 size={22} /> Bringing up the menu...</div>}
+          {error && <p className="alert" role="alert">{error}</p>}
+          {!loading && !error && (
+            <>
+              <div className="menu-results__meta">
+                <span>{filteredItems.length} delicious {filteredItems.length === 1 ? "option" : "options"}</span>
+                <span><Sparkles size={14} /> Freshly made for you</span>
+              </div>
+              {filteredItems.length ? (
+                <div className="menu-grid">
+                  {filteredItems.map((item) => {
+                    const category = categories.find((entry) => entry.id === item.category_id);
+                    return (
+                      <MenuCard
+                        key={item.id}
+                        item={item}
+                        category={category?.name}
+                        cartItem={cartItems.find((cartItem) => cartItem.id === item.id)}
+                        addToCart={addToCart}
+                        increaseQuantity={increaseQuantity}
+                        decreaseQuantity={decreaseQuantity}
                       />
-                    ) : (
-                      <div className="menu-item-image menu-image-placeholder">
-                        {item.name}
-                      </div>
-                    )}
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="empty-state"><Search size={22} /><h2>Nothing on the menu just yet</h2><p>Try a different search or category.</p></div>
+              )}
+            </>
+          )}
+        </section>
 
-                    <div className="menu-item-details">
-                      <h2>{item.name}</h2>
-                      <p>{category?.name || "Menu item"}</p>
-                      <p className="menu-item-price">
-                        ₹{Number(item.price).toFixed(2)}
-                      </p>
-
-                      {cartItem ? (
-                        <div className="menu-quantity-controls">
-                          <button onClick={() => decreaseQuantity(item.id)}>
-                            −
-                          </button>
-                          <span>{cartItem.quantity}</span>
-                          <button onClick={() => increaseQuantity(item.id)}>
-                            +
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          className="add-to-cart-button"
-                          onClick={() => addToCart({
-                            ...item,
-                            category: item.category_id,
-                            image: item.image_url,
-                            price: Number(item.price),
-                          })}
-                        >
-                          Add
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
-
-            {filteredItems.length === 0 && (
-              <p>No matching items found.</p>
-            )}
-          </>
+        {cartCount > 0 && (
+          <Link to="/cart" className="floating-cart-link">
+            <span><strong>{cartCount}</strong> {cartCount === 1 ? "item" : "items"} in your cart</span>
+            <span>View cart <ArrowRight size={16} /></span>
+          </Link>
         )}
-      </section>
-    </main>
+      </main>
+    </>
   );
 }

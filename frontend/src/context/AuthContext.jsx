@@ -17,13 +17,18 @@ export function AuthProvider({ children }) {
 
     try {
       const endpoint =
-        role === "admin" || role === "kitchen"
+        role === "admin"
           ? "/api/auth/admin/login"
-          : "/api/auth/login";
+          : role === "kitchen"
+            ? "/api/auth/kitchen/login"
+            : "/api/auth/login";
 
       const response = await api.post(endpoint, credentials);
 
       const loggedInUser = response.student;
+      if (!response.access_token || !loggedInUser) {
+        throw new Error("The server returned an incomplete authentication response.");
+      }
 
       localStorage.setItem("access_token", response.access_token);
       localStorage.setItem("user", JSON.stringify(loggedInUser));
@@ -49,6 +54,8 @@ export function AuthProvider({ children }) {
   );
 }
 
+// The provider and its hook intentionally share this context module.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   return useContext(AuthContext);
 }

@@ -1,12 +1,14 @@
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models.menu import MenuItem
 from app.models.category import Category
+from app.models.order import OrderItem
 from app.models.user import User
-from app.schemas.menu import MenuItemCreate, MenuItemResponse,MenuItemUpdate
+from app.schemas.menu import MenuItemCreate, MenuItemResponse, MenuItemUpdate
 from app.services.permissions import require_role
 
 
@@ -55,11 +57,18 @@ def create_menu_item(
         price=data.price,
         category_id=data.category_id,
         image_url=data.image_url,
-        is_available=True,
+        is_available=data.is_available,
     )
 
     db.add(new_item)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Menu item could not be created because it conflicts with existing data",
+        ) from error
     db.refresh(new_item)
 
     return new_item
@@ -97,7 +106,14 @@ def update_menu_item(
     for field, value in update_data.items():
         setattr(item, field, value)
 
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Menu item could not be updated because it conflicts with existing data",
+        ) from error
     db.refresh(item)
 
     return item
@@ -118,9 +134,37 @@ def delete_menu_item(
             detail="Menu item not found",
         )
 
+    has_order_history = db.query(OrderItem.id).filter(
+        OrderItem.menu_item_id == item_id
+    ).first() is not None
+
+    if has_order_history:
+        item.is_available = False
+        try:
+            db.commit()
+        except IntegrityError as error:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Menu item could not be removed from the active menu",
+            ) from error
+        return {
+            "message": "Menu item removed from the active menu; order history was preserved",
+            "deleted": False,
+            "is_available": False,
+        }
+
     db.delete(item)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Menu item is referenced by existing data and could not be deleted",
+        ) from error
 
     return {
-        "message": "Menu item deleted successfully"
+        "message": "Menu item deleted successfully",
+        "deleted": True,
     }

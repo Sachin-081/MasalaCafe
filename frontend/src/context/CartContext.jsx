@@ -52,6 +52,10 @@ export function CartProvider({ children }) {
     )
   }
 
+  const clearCart = () => {
+    setCartItems([])
+  }
+
   const cartCount = cartItems.reduce(
     (total, item) => total + item.quantity,
     0
@@ -68,6 +72,7 @@ export function CartProvider({ children }) {
     increaseQuantity,
     decreaseQuantity,
     removeFromCart,
+    clearCart,
     cartCount,
     cartTotal,
   }
@@ -79,6 +84,8 @@ export function CartProvider({ children }) {
   )
 }
 
+// The provider and its hook intentionally share this context module.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const context = useContext(CartContext)
 

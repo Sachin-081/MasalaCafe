@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Menu from "./pages/student/Menu";
 import Cart from "./pages/student/Cart";
 import Dashboard from "./pages/student/Dashboard";
@@ -16,6 +17,7 @@ import MenuManagement from "./pages/admin/MenuManagement";
 import Inventory from "./pages/admin/Inventory";
 import Orders from "./pages/admin/Orders";
 import Analytics from "./pages/admin/Analytics";
+import KitchenUsers from "./pages/admin/KitchenUsers";
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user } = useAuth();
@@ -35,6 +37,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
 
       <Route path="/" element={
         <ProtectedRoute allowedRoles={["student"]}>
@@ -99,6 +102,12 @@ function AppRoutes() {
       <Route path="/admin/analytics" element={
         <ProtectedRoute allowedRoles={["admin"]}>
           <Analytics />
+        </ProtectedRoute>
+      } />
+
+      <Route path="/admin/kitchen-users" element={
+        <ProtectedRoute allowedRoles={["admin"]}>
+          <KitchenUsers />
         </ProtectedRoute>
       } />
 

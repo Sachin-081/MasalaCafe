@@ -1,7 +1,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 
 
 class StudentSignup(BaseModel):
@@ -28,6 +28,9 @@ class StudentResponse(BaseModel):
     email: EmailStr
     role: str
 
+    model_config = ConfigDict(from_attributes=True)
+
+
 class StudentLogin(BaseModel):
     registration_number: str = Field(
         min_length=3,
@@ -46,6 +49,13 @@ class AdminLogin(BaseModel):
         min_length=8,
         max_length=128,
     )
+
+
+class KitchenUserCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=100)
+    registration_number: str = Field(min_length=3, max_length=30)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
 
 
 class LoginResponse(BaseModel):

@@ -1,6 +1,8 @@
-
 import { useEffect, useState } from "react";
+import { ArrowRight, ClipboardList, Clock3 } from "lucide-react";
 import { Link } from "react-router-dom";
+import Navbar from "../../components/Navbar";
+import OrderCard from "../../components/OrderCard";
 import api from "../../services/api";
 
 export default function MyOrders() {
@@ -14,53 +16,41 @@ export default function MyOrders() {
         const data = await api.get("/api/orders/");
         setOrders(data);
       } catch (err) {
-        setError(err.message || "Unable to load orders.");
+        setError(err.message || "Unable to load your orders.");
       } finally {
         setLoading(false);
       }
     }
-
     loadOrders();
   }, []);
 
   return (
-    <main style={{ padding: "30px", fontFamily: "Arial" }}>
-      <h1>My Orders</h1>
-      <Link to="/">← Back to Menu</Link>
-
-      {loading && <p>Loading your orders...</p>}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      {!loading && !error && orders.length === 0 && (
-        <p>You haven't placed any orders yet.</p>
-      )}
-
-      {orders.map((order) => (
-        <article
-          key={order.id}
-          style={{
-            border: "1px solid #ddd",
-            borderRadius: "10px",
-            padding: "18px",
-            marginTop: "16px",
-          }}
-        >
-          <h2>Token: {order.token_number}</h2>
-          <p>Order #{order.id}</p>
-          <p>Status: <strong>{order.status.toUpperCase()}</strong></p>
-          <p>Total: ₹{Number(order.total_amount).toFixed(2)}</p>
-
-          <h3>Items</h3>
-          <ul>
-            {order.items.map((item) => (
-              <li key={item.id}>
-                Item #{item.menu_item_id} × {item.quantity}
-                — ₹{Number(item.subtotal).toFixed(2)}
-              </li>
-            ))}
-          </ul>
-        </article>
-      ))}
-    </main>
+    <>
+      <Navbar />
+      <main className="page-content">
+        <div className="page-heading">
+          <div>
+            <p className="eyebrow">YOUR CANTEEN ACTIVITY</p>
+            <h1 className="page-title">My orders</h1>
+            <p className="page-subtitle">Your order tokens and updates, all in one place.</p>
+          </div>
+          <Link to="/" className="button button--outline"><ArrowRight size={16} /> Order again</Link>
+        </div>
+        {loading && <div className="loading-state"><Clock3 size={22} /> Loading your orders...</div>}
+        {error && <p className="alert" role="alert">{error}</p>}
+        {!loading && !error && (orders.length ? (
+          <div className="orders-grid">
+            {orders.map((order) => <OrderCard key={order.id} order={order} />)}
+          </div>
+        ) : (
+          <div className="empty-state">
+            <ClipboardList size={25} />
+            <h2>Your story starts with a first order</h2>
+            <p>Once you place an order, its pickup token and status will appear here.</p>
+            <Link to="/" className="button">Explore the menu <ArrowRight size={16} /></Link>
+          </div>
+        ))}
+      </main>
+    </>
   );
 }

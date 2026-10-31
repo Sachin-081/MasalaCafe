@@ -1,6 +1,21 @@
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
+function formatApiError(data, status, responseBody) {
+  const detail = data?.detail;
+  if (typeof detail === "string" && detail) return detail;
+
+  if (Array.isArray(detail)) {
+    return detail.map((issue) => {
+      const field = Array.isArray(issue.loc) ? issue.loc.slice(1).join(".") : "";
+      return field ? `${field}: ${issue.msg}` : issue.msg;
+    }).join("; ");
+  }
+
+  if (responseBody?.trim()) return responseBody.trim().slice(0, 1000);
+  return `Request failed (${status})`;
+}
+
 const api = {
   async request(endpoint, options = {}) {
     const token = localStorage.getItem("access_token");
@@ -16,10 +31,18 @@ const api = {
       headers,
     });
 
-    const data = await response.json().catch(() => null);
+    const body = await response.text();
+    let data = null;
+    if (body) {
+      try {
+        data = JSON.parse(body);
+      } catch {
+        data = null;
+      }
+    }
 
     if (!response.ok) {
-      throw new Error(data?.detail || "Something went wrong");
+      throw new Error(formatApiError(data, response.status, body));
     }
 
     return data;

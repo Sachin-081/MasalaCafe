@@ -3,12 +3,11 @@ import jwt
 
 from app.config import settings
 
-from app.schemas.user import StudentSignup, StudentLogin, AdminLogin
+from app.schemas.user import StudentSignup, StudentLogin, AdminLogin, KitchenUserCreate
 from sqlalchemy.orm import Session
 from pwdlib import PasswordHash
 
 from app.models.user import User
-from app.schemas.user import StudentSignup
 
 password_hash = PasswordHash.recommended()
 
@@ -83,6 +82,45 @@ def login_admin(data: AdminLogin, db: Session):
         raise ValueError("Invalid admin ID or password")
 
     return admin
+
+
+def register_kitchen_user(data: KitchenUserCreate, db: Session):
+    existing_user = db.query(User).filter(
+        (User.registration_number == data.registration_number)
+        | (User.email == data.email)
+    ).first()
+
+    if existing_user:
+        raise ValueError("Registration number or email already registered")
+
+    kitchen_user = User(
+        name=data.name,
+        registration_number=data.registration_number,
+        email=data.email,
+        password_hash=password_hash.hash(data.password),
+        role="kitchen",
+    )
+
+    db.add(kitchen_user)
+    db.commit()
+    db.refresh(kitchen_user)
+    return kitchen_user
+
+
+def login_kitchen(data: AdminLogin, db: Session):
+    kitchen_user = db.query(User).filter(
+        User.registration_number == data.registration_number
+    ).first()
+
+    if (
+        not kitchen_user
+        or kitchen_user.role != "kitchen"
+        or not password_hash.verify(data.password, kitchen_user.password_hash)
+    ):
+        raise ValueError("Invalid kitchen ID or password")
+
+    return kitchen_user
+
 
 def create_access_token(student: User):
     expire = datetime.now(timezone.utc) + timedelta(

@@ -11,6 +11,7 @@ class MenuItemCreate(BaseModel):
     price: Decimal = Field(gt=0, max_digits=10, decimal_places=2)
     category_id: int = Field(gt=0)
     image_url: str | None = Field(default=None, max_length=500)
+    is_available: bool = True
 
 
 class MenuItemResponse(BaseModel):

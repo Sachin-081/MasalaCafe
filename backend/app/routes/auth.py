@@ -8,12 +8,15 @@ from app.schemas.user import (
     StudentResponse,
     StudentLogin,
     AdminLogin,
+    KitchenUserCreate,
     LoginResponse,
 )
 from app.services.auth_service import (
     register_student,
     login_student,
     login_admin,
+    login_kitchen,
+    register_kitchen_user,
     create_access_token,
 )
 from app.services.security import get_current_user
@@ -91,6 +94,45 @@ def admin_login(
             "student": admin,
         }
 
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=str(error),
+        )
+
+
+@router.post(
+    "/kitchen-users",
+    response_model=StudentResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_kitchen_account(
+    data: KitchenUserCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role("admin")),
+):
+    try:
+        return register_kitchen_user(data, db)
+    except ValueError as error:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(error),
+        )
+
+
+@router.post("/kitchen/login", response_model=LoginResponse)
+def kitchen_login(
+    data: AdminLogin,
+    db: Session = Depends(get_db),
+):
+    try:
+        kitchen_user = login_kitchen(data, db)
+        access_token = create_access_token(kitchen_user)
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "student": kitchen_user,
+        }
     except ValueError as error:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

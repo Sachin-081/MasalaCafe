@@ -44,3 +44,32 @@ export const menuItems = [
   { id: 25, name: 'Soft drinks', category: 'cold-beverages', image: '/images/menu/soft-drinks.jpg', price: 30, available: true, quantity: null },
   { id: 26, name: 'Lime juice', category: 'cold-beverages', image: '/images/menu/lime-juice.jpg', price: 25, available: true, quantity: null },
 ]
+
+const normalizeName = (value = '') =>
+  value.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, ' ').trim()
+
+const imageByName = new Map(
+  menuItems.map((item) => [normalizeName(item.name), item.image])
+)
+
+imageByName.set('idli', '/images/menu/idly.jpg')
+
+const knownImagePaths = new Set(menuItems.map((item) => item.image))
+
+export function getMenuImage(item) {
+  const imageField = item.image_url || item.image
+
+  if (imageField) {
+    if (/^https?:\/\//i.test(imageField)) return imageField
+
+    const fileName = imageField.split(/[?#]/, 1)[0].split('/').pop()
+    const knownPath = `/images/menu/${fileName}`
+    if (knownImagePaths.has(knownPath)) return knownPath
+  }
+
+  return imageByName.get(normalizeName(item.name)) || null
+}
+
+export function getMenuImageFallback(item) {
+  return imageByName.get(normalizeName(item.name)) || null
+}
