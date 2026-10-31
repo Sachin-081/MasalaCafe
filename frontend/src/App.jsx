@@ -1,5 +1,6 @@
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 
 import Login from "./pages/Login";
@@ -16,8 +17,9 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import MenuManagement from "./pages/admin/MenuManagement";
 import Inventory from "./pages/admin/Inventory";
 import Orders from "./pages/admin/Orders";
-import Analytics from "./pages/admin/Analytics";
 import KitchenUsers from "./pages/admin/KitchenUsers";
+
+const Analytics = lazy(() => import("./pages/admin/Analytics"));
 
 function ProtectedRoute({ children, allowedRoles }) {
   const { user } = useAuth();
@@ -101,7 +103,9 @@ function AppRoutes() {
 
       <Route path="/admin/analytics" element={
         <ProtectedRoute allowedRoles={["admin"]}>
-          <Analytics />
+          <Suspense fallback={<div className="loading-state">Loading analytics...</div>}>
+            <Analytics />
+          </Suspense>
         </ProtectedRoute>
       } />
 

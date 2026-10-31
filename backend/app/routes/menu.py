@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models.menu import MenuItem
 from app.models.category import Category
 from app.models.order import OrderItem
+from app.models.inventory import InventoryStock
 from app.models.user import User
 from app.schemas.menu import MenuItemCreate, MenuItemResponse, MenuItemUpdate
 from app.services.permissions import require_role
@@ -80,9 +81,12 @@ def update_menu_item(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_role("admin")),
 ):
-    item = db.query(MenuItem).filter(
-        MenuItem.id == item_id
-    ).first()
+    item = (
+        db.query(MenuItem)
+        .filter(MenuItem.id == item_id)
+        .with_for_update()
+        .first()
+    )
 
     if item is None:
         raise HTTPException(
@@ -102,6 +106,18 @@ def update_menu_item(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Category not found",
             )
+
+    if "is_available" in update_data:
+        stock = db.query(InventoryStock).filter(
+            InventoryStock.menu_item_id == item_id
+        ).first()
+        if stock is not None and stock.stock_quantity == 0:
+            if update_data["is_available"] is True:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="An out-of-stock item cannot be made available",
+                )
+            stock.availability_before_stockout = False
 
     for field, value in update_data.items():
         setattr(item, field, value)
@@ -137,8 +153,11 @@ def delete_menu_item(
     has_order_history = db.query(OrderItem.id).filter(
         OrderItem.menu_item_id == item_id
     ).first() is not None
+    has_inventory_history = db.query(InventoryStock.id).filter(
+        InventoryStock.menu_item_id == item_id
+    ).first() is not None
 
-    if has_order_history:
+    if has_order_history or has_inventory_history:
         item.is_available = False
         try:
             db.commit()
@@ -149,7 +168,11 @@ def delete_menu_item(
                 detail="Menu item could not be removed from the active menu",
             ) from error
         return {
-            "message": "Menu item removed from the active menu; order history was preserved",
+            "message": (
+                "Menu item removed from the active menu; order history was preserved"
+                if has_order_history
+                else "Menu item removed from the active menu; inventory history was preserved"
+            ),
             "deleted": False,
             "is_available": False,
         }

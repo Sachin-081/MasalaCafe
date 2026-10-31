@@ -8,8 +8,8 @@ import api from "../../services/api";
 const quickLinks = [
   { to: "/admin/menu", title: "Menu management", description: "Update dishes, prices and availability.", icon: UtensilsCrossed },
   { to: "/admin/orders", title: "Order management", description: "Review incoming student orders.", icon: ClipboardList },
-  { to: "/admin/inventory", title: "Inventory", description: "Stock tracking is not connected yet.", icon: Boxes },
-  { to: "/admin/analytics", title: "Analytics", description: "Sales reporting is not connected yet.", icon: ChartNoAxesCombined },
+  { to: "/admin/inventory", title: "Inventory", description: "Track stock, restocks and low-stock alerts.", icon: Boxes },
+  { to: "/admin/analytics", title: "Analytics", description: "Review completed sales and best-selling items.", icon: ChartNoAxesCombined },
 ];
 
 function StatCard({ label, value, icon: Icon, detail }) {
