@@ -390,14 +390,14 @@ export default function MenuManagement() {
         </section>
       )}
 
-      <section className="panel">
+      <section className="panel menu-admin-panel">
         <div className="panel__header">
           <h2>All menu items <span className="table-count">{items.length}</span></h2>
           <label className="search-box menu-admin-search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search menu..." aria-label="Search menu items" /></label>
         </div>
         <div className="data-table-wrap">
           {loading && <div className="loading-state"><AlertCircle size={18} /> Loading menu items...</div>}
-          <table className="data-table">
+          <table className="data-table menu-admin-table">
             <thead><tr><th>Image</th><th>Dish</th><th>Category</th><th>Price</th><th>Availability</th><th>Actions</th></tr></thead>
             <tbody>
               {filteredItems.map((item) => (
@@ -414,6 +414,46 @@ export default function MenuManagement() {
               ))}
             </tbody>
           </table>
+          <div className="menu-admin-cards">
+            {filteredItems.map((item) => (
+              <article className="menu-admin-card" key={item.id}>
+                <div className="menu-admin-card__details">
+                  <MenuImage key={`${item.id}-${item.image_url || item.name}`} item={item} className="menu-admin-card__image" />
+                  <div className="menu-admin-card__copy">
+                    <strong>{item.name}</strong>
+                    {item.description && <span>{item.description}</span>}
+                  </div>
+                </div>
+                <div className="menu-admin-card__meta">
+                  <span>{categoryName(item.category_id)}</span>
+                  <strong>₹{Number(item.price).toFixed(2)}</strong>
+                </div>
+                <div className="menu-admin-card__actions">
+                  <button
+                    className={`status-badge status-badge--${item.is_available ? "available" : "unavailable"} availability-toggle`}
+                    onClick={() => toggleAvailability(item)}
+                    disabled={updatingAvailabilityId === item.id || deletingId === item.id}
+                  >
+                    {updatingAvailabilityId === item.id ? "Updating..." : item.is_available ? "Available" : "Unavailable"}
+                  </button>
+                  <div>
+                    <button className="button button--soft" onClick={() => startEdit(item)} disabled={saving || deletingId === item.id}>
+                      <Edit3 size={15} /> Edit
+                    </button>
+                    <button
+                      className="icon-button table-delete"
+                      onClick={() => deleteItem(item)}
+                      aria-label={`Remove ${item.name} from active menu`}
+                      title="Remove from active menu"
+                      disabled={deletingId === item.id || saving}
+                    >
+                      {deletingId === item.id ? "…" : <Trash2 size={15} />}
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
           {!loading && filteredItems.length === 0 && <div className="table-empty">{search ? "No menu items match your search." : "No menu items yet. Add the first dish to get started."}</div>}
         </div>
       </section>

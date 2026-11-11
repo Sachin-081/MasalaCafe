@@ -39,7 +39,7 @@ export default function MyOrders() {
         {loading && <div className="loading-state"><Clock3 size={22} /> Loading your orders...</div>}
         {error && <p className="alert" role="alert">{error}</p>}
         {!loading && !error && (orders.length ? (
-          <div className="orders-grid">
+          <div className="orders-grid student-orders-grid">
             {orders.map((order) => <OrderCard key={order.id} order={order} />)}
           </div>
         ) : (

@@ -212,6 +212,64 @@ export default function Inventory() {
                 })}
               </tbody>
             </table>
+            <div className="inventory-cards">
+              {inventory.map((item) => {
+                const draft = drafts[item.menu_item_id] || createDraft(item);
+                return (
+                  <article className="inventory-card" key={item.menu_item_id}>
+                    <div className="inventory-card__heading">
+                      <div>
+                        <h3>{item.name}</h3>
+                        <p>{item.category_name}</p>
+                      </div>
+                      <span className={`inventory-stock-status inventory-stock-status--${item.stock_status}`}>{item.stock_status.replaceAll("_", " ")}</span>
+                    </div>
+                    <div className="inventory-card__summary">
+                      <span>On hand <strong>{draft.stock_quantity === "" ? "Not set" : draft.stock_quantity}</strong></span>
+                      <span className={`status-badge status-badge--${item.is_available ? "available" : "unavailable"}`}>{item.is_available ? "Available" : "Unavailable"}</span>
+                    </div>
+                    <div className="inventory-card__fields">
+                      <label>
+                        Low-stock threshold
+                        <input
+                          className="inventory-number-input"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={draft.low_stock_threshold}
+                          onChange={(event) => updateDraft(item.menu_item_id, "low_stock_threshold", event.target.value)}
+                        />
+                      </label>
+                      <label>
+                        On-hand quantity
+                        <input
+                          className="inventory-number-input"
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={draft.stock_quantity}
+                          onChange={(event) => updateDraft(item.menu_item_id, "stock_quantity", event.target.value)}
+                        />
+                      </label>
+                      <label className="inventory-card__reason">
+                        Reason for adjustment
+                        <input
+                          className="inventory-reason-input"
+                          type="text"
+                          maxLength="255"
+                          placeholder="e.g. Morning restock"
+                          value={draft.reason}
+                          onChange={(event) => updateDraft(item.menu_item_id, "reason", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <button className="button inventory-save-button" type="button" onClick={() => saveStock(item)} disabled={savingId === item.menu_item_id}>
+                      <Save size={14} />{savingId === item.menu_item_id ? "Saving..." : item.stock_status === "untracked" ? "Set stock" : "Save stock"}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
           </div>
         )}
       </section>
@@ -224,7 +282,7 @@ export default function Inventory() {
           <div className="table-empty">Stock movement history will appear after an admin records an initial balance or changes stock.</div>
         ) : (
           <div className="data-table-wrap">
-            <table className="data-table">
+            <table className="data-table inventory-history-table">
               <thead><tr><th>Menu item</th><th>Change</th><th>Balance</th><th>Reason</th><th>Recorded</th></tr></thead>
               <tbody>
                 {movements.map((movement) => (
@@ -241,6 +299,25 @@ export default function Inventory() {
                 ))}
               </tbody>
             </table>
+            <div className="inventory-movement-cards">
+              {movements.map((movement) => (
+                <article className="inventory-movement-card" key={movement.id}>
+                  <div className="inventory-movement-card__heading">
+                    <strong>{movement.menu_item_name}</strong>
+                    <span className={movement.quantity_change < 0 ? "inventory-movement--deduction" : "inventory-movement--addition"}>
+                      {movement.quantity_change < 0 ? <ArrowDown size={14} /> : <ArrowUp size={14} />}
+                      {movement.quantity_change > 0 ? "+" : ""}{movement.quantity_change}
+                    </span>
+                  </div>
+                  <div className="inventory-movement-card__balance">
+                    <span>Previous balance <strong>{movement.quantity_before}</strong></span>
+                    <span>New balance <strong>{movement.quantity_after}</strong></span>
+                  </div>
+                  <p>{movement.reason}</p>
+                  <time dateTime={movement.created_at}>{formatTimestamp(movement.created_at)}</time>
+                </article>
+              ))}
+            </div>
           </div>
         )}
       </section>

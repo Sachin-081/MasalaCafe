@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { GraduationCap, ShieldCheck, Sparkles, UtensilsCrossed } from "lucide-react";
+import { Eye, EyeOff, GraduationCap, ShieldCheck, Sparkles, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { normalizeDob } from "../utils/dob";
 
@@ -10,6 +10,7 @@ export default function Login() {
   const [dob, setDob] = useState("");
   const [dobError, setDobError] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
   const { login, loading } = useAuth();
   const navigate = useNavigate();
@@ -58,13 +59,13 @@ export default function Login() {
           <p>Choose your account type to continue.</p>
 
           <div className="role-selector role-selector--three-col" aria-label="Choose account type">
-            <button type="button" className={role === "student" ? "active" : ""} onClick={() => { setRole("student"); setError(""); setDobError(""); }}>
+            <button type="button" className={role === "student" ? "active" : ""} onClick={() => { setRole("student"); setPasswordVisible(false); setError(""); setDobError(""); }}>
               <GraduationCap size={17} /> Student
             </button>
-            <button type="button" className={role === "admin" ? "active" : ""} onClick={() => { setRole("admin"); setError(""); setDobError(""); }}>
+            <button type="button" className={role === "admin" ? "active" : ""} onClick={() => { setRole("admin"); setPasswordVisible(false); setError(""); setDobError(""); }}>
               <ShieldCheck size={16} /> Admin
             </button>
-            <button type="button" className={role === "kitchen" ? "active" : ""} onClick={() => { setRole("kitchen"); setError(""); setDobError(""); }}>
+            <button type="button" className={role === "kitchen" ? "active" : ""} onClick={() => { setRole("kitchen"); setPasswordVisible(false); setError(""); setDobError(""); }}>
               <UtensilsCrossed size={16} /> Kitchen
             </button>
           </div>
@@ -107,7 +108,18 @@ export default function Login() {
             ) : (
               <>
                 <label htmlFor="login-password">Password</label>
-                <input id="login-password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" autoComplete="current-password" required />
+                <div className="login-password-field">
+                  <input id="login-password" type={passwordVisible ? "text" : "password"} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="Enter your password" autoComplete="current-password" required />
+                  <button
+                    className="login-password-toggle"
+                    type="button"
+                    onClick={() => setPasswordVisible((visible) => !visible)}
+                    aria-label={passwordVisible ? "Hide password" : "Show password"}
+                    aria-pressed={passwordVisible}
+                  >
+                    {passwordVisible ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
               </>
             )}
             {error && <p className="alert" role="alert">{error}</p>}

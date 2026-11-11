@@ -4,11 +4,37 @@ import api from "../services/api";
 
 const AuthContext = createContext(null);
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
+function getInitialUser() {
+  try {
     const savedUser = localStorage.getItem("user");
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+    const accessToken = localStorage.getItem("access_token");
+
+    if (
+      !savedUser ||
+      typeof accessToken !== "string" ||
+      !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(accessToken)
+    ) {
+      return null;
+    }
+
+    const user = JSON.parse(savedUser);
+    if (
+      !user ||
+      typeof user !== "object" ||
+      Array.isArray(user) ||
+      !["student", "admin", "kitchen"].includes(user.role)
+    ) {
+      return null;
+    }
+
+    return user;
+  } catch {
+    return null;
+  }
+}
+
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(getInitialUser);
 
   const [loading, setLoading] = useState(false);
 
