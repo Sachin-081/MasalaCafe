@@ -11,10 +11,13 @@ if database_url.drivername in {"postgres", "postgresql"}:
     database_url = database_url.set(drivername="postgresql+psycopg")
 
 # Create the connection between Python and PostgreSQL
+
 engine = create_engine(
     database_url,
     pool_pre_ping=True,
+    connect_args={"connect_timeout": 10},
 )
+
 
 # Creates database sessions
 SessionLocal = sessionmaker(
