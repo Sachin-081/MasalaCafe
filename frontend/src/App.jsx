@@ -23,15 +23,15 @@ import AccountDeletionRequests from "./pages/admin/AccountDeletionRequests";
 
 const Analytics = lazy(() => import("./pages/admin/Analytics"));
 
+const roleHome = { student: "/", kitchen: "/kitchen", admin: "/admin" };
+
 function ProtectedRoute({ children, allowedRoles }) {
   const { user } = useAuth();
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={roleHome[user.role] || "/login"} replace />;
   }
 
   return children;

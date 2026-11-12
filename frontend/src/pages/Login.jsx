@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Eye, EyeOff, GraduationCap, ShieldCheck, Sparkles, UtensilsCrossed } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { normalizeDob } from "../utils/dob";
@@ -12,8 +12,13 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [error, setError] = useState("");
-  const { login, loading } = useAuth();
+  const { login, loading, user } = useAuth();
   const navigate = useNavigate();
+
+  const roleHome = { student: "/", kitchen: "/kitchen", admin: "/admin" };
+  if (user && roleHome[user.role]) {
+    return <Navigate to={roleHome[user.role]} replace />;
+  }
 
   async function handleSubmit(event) {
     event.preventDefault();
